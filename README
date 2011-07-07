@@ -1,12 +1,35 @@
 This is a simple (header and cc) library for C++ exceptions that lets you build error messages in-line.  
 
-Here's an example:
+Throw an exception using stringstream to construct the message:
+UTIL_THROW(util::Exception, "Example problem" << 1);
+
+Use ErrnoException with system functions that set errno:
 int OpenReadOrThrow(const char *name) {
   int ret;
   UTIL_THROW_IF(-1 == (ret = open(name, O_RDONLY)), util::ErrnoException, "while opening " << name);
   return ret;
 }
-
 If the file does not exist, calling what() returns:
 test.cc:45 in int OpenReadOrThrow(const char*) threw ErrnoException because `-1 == (ret = open(name, O_RDONLY))'.
 No such file or directory while opening foo
+
+Inherit from Exception and retain functionality:
+class ParseNumberException : public Exception {
+  public:
+    explicit ParseNumberException(StringPiece value) throw() : value_(value.data(), value.size()) {
+      *this << "Could not parse \"" << value << "\" into a number";
+    }
+    ~ParseNumberException() throw() {}
+
+    std::string Value() const { return value_; }
+
+  private:
+    std::string value_;
+};
+
+Catch exceptions to add more information:
+try {
+  float val = ReadFloatFromFile(file);
+} catch(util::Exception &e) {
+  throw e << " in file " << file;
+}
