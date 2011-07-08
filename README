@@ -13,7 +13,7 @@ If the file does not exist, calling what() returns:
 test.cc:45 in int OpenReadOrThrow(const char*) threw ErrnoException because `-1 == (ret = open(name, O_RDONLY))'.
 No such file or directory while opening foo
 
-Inherit from Exception and retain functionality:
+Inherit from Exception and operator<< still returns the correct class:
 class ParseNumberException : public Exception {
   public:
     explicit ParseNumberException(StringPiece value) throw() : value_(value.data(), value.size()) {
@@ -31,5 +31,6 @@ Catch exceptions to add more information:
 try {
   float val = ReadFloatFromFile(file);
 } catch(util::Exception &e) {
-  throw e << " in file " << file;
+  e << " in file " << file;
+  throw;
 }
